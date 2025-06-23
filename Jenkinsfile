@@ -31,7 +31,9 @@ pipeline {
 					sh """
 						docker stop ${DOCKER_IMAGE} || true
 						docker remove ${DOCKER_IMAGE} || true
-						docker run -d --name ${DOCKER_IMAGE} -p 8001:8001 ${DOCKER_IMAGE}:${DOCKER_TAG}
+						docker run -d --name ${DOCKER_IMAGE} \
+						 --env-file /Users/kelsey.huntzberry/agent-app.sh \
+						 -p 8001:8001 ${DOCKER_IMAGE}:${DOCKER_TAG}
 					"""
 				}
 			}
