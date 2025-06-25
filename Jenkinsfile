@@ -28,6 +28,7 @@ pipeline {
 			steps {
 				withCredentials([file(credentialsId: 'env-file', variable: 'ENV_FILE')]) {
 					sh 'cp $ENV_FILE .env'
+					sh 'chmod 644 .env'
 				}
 			}
 		}
