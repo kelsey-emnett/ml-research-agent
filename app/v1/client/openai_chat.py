@@ -11,9 +11,9 @@ class OpenAIChat:
         self.api_key = os.getenv("AZURE_OPENAI_API_KEY")
         self.endpoint = os.getenv("AZURE_OPENAI_ENDPOINT")
         self.api_version = os.getenv("AZURE_OPENAI_VERSION")
-        base_path = os.getenv("BASE_PATH")
+        config_path = os.path.join("./app/config", "config.yaml")
 
-        with open(f"{base_path}/config.yaml", "r") as file:
+        with open(config_path, "r") as file:
             config = yaml.safe_load(file)
 
         self.model_name = config["openai"]["model_name"]

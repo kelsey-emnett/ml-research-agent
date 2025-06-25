@@ -4,6 +4,7 @@ pipeline {
 	environment {
 		DOCKER_IMAGE = 'ml-research-agent'
 		DOCKER_TAG = '${BUILD_NUMBER}'
+		CONFIG_DIR = "${WORKSPACE}/config"
 	}
 
 	stages {
@@ -12,6 +13,25 @@ pipeline {
 				checkout scm
 			}
 		}
+
+		stage('Setup Config') {
+			steps {
+				script {
+					sh "mkdir -p ${CONFIG_DIR}"
+
+					sh "cp config.yaml ${CONFIG_DIR}/ || true"
+				}
+			}
+		}
+
+		stage('Add Environment Variables') {
+			steps {
+				withCredentials([file(credentialsId: 'env-file', variable: 'ENV_FILE')]) {
+					sh 'cp $ENV_FILE .env'
+				}
+			}
+		}
+
 
 		stage('Build Docker Image') {
 			steps {
@@ -27,6 +47,7 @@ pipeline {
 					sh """
 						docker run --rm \
 						--env-file .env \
+						-v ${CONFIG_DIR}:/app/config \
 						${DOCKER_IMAGE}:${DOCKER_TAG} pytest
 					"""
 				}
@@ -45,6 +66,7 @@ pipeline {
 						docker remove ${DOCKER_IMAGE} || true
 						docker run -d --name ${DOCKER_IMAGE} \
 						 --env-file .env \
+						 -v ${CONFIG_DIR}:/app/config \
 						 -p 8001:8001 ${DOCKER_IMAGE}:${DOCKER_TAG}
 					"""
 				}
