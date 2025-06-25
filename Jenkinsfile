@@ -27,6 +27,7 @@ pipeline {
 		stage('Add Environment Variables') {
 			steps {
 				withCredentials([file(credentialsId: 'env-file', variable: 'ENV_FILE')]) {
+					sh 'rm -f .env || true'
 					sh 'cp $ENV_FILE .env'
 				}
 			}
