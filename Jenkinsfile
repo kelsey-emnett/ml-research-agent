@@ -25,7 +25,9 @@ pipeline {
 			steps {
 				script {
 					sh """
-						docker run --rm ${DOCKER_IMAGE}:${DOCKER_TAG} pytest
+						docker run --rm \
+						--env-file .env \
+						${DOCKER_IMAGE}:${DOCKER_TAG} pytest
 					"""
 				}
 			}
