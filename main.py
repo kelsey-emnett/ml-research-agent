@@ -1,8 +1,8 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, APIRouter
+from app.v1.endpoints import openai_chat
 
 app = FastAPI()
 
+router = APIRouter()
 
-@app.get("/")
-async def read_root():
-    return {"Hello": "World"}
+app.include_router(openai_chat.router, prefix="/api/v1", tags=["chat"])
