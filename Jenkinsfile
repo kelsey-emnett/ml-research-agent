@@ -21,6 +21,16 @@ pipeline {
 			}
 		}
 
+		stage('Test') {
+			steps {
+				script {
+					sh """
+						docker run --rm ${DOCKER_IMAGE}:${DOCKER_TAG} pytest
+					"""
+				}
+			}
+		}
+
 		stage('Deploy') {
 			when {
 				branch 'main'
