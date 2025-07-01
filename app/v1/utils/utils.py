@@ -1,0 +1,14 @@
+import aiohttp
+import ssl
+
+
+def create_ssl_context():
+    # Create a custom SSL context that doesn't verify certificates
+    ssl_context = ssl.create_default_context()
+    ssl_context.check_hostname = False
+    ssl_context.verify_mode = ssl.CERT_NONE
+
+    # Configure the client session with the SSL context
+    connector = aiohttp.TCPConnector(ssl=ssl_context)
+
+    return connector

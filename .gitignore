@@ -195,3 +195,5 @@ cython_debug/
 
 # Idea files
 .idea/*
+
+scratch_space/
