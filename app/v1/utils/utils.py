@@ -12,3 +12,9 @@ def create_ssl_context():
     connector = aiohttp.TCPConnector(ssl=ssl_context)
 
     return connector
+
+
+def filter_valid_results(results):
+    return [
+        result for result in results if result and not isinstance(result, Exception)
+    ]

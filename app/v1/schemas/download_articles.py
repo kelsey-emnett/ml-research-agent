@@ -9,7 +9,14 @@ class CrossRefParams(BaseModel):
     rows: int = 10
 
 
-class Article(BaseModel):
+class ArticleInput(BaseModel):
+    query: str = Field(description="Query used to retrieve article")
+    max_articles: int = Field(
+        default=10, description="Maximum number of articles retrieved"
+    )
+
+
+class ArticleResponse(BaseModel):
     doi: str = Field(alias="DOI")
     title: List[str] = Field(alias="title")  # From context it seems title is a list
     author: List[dict] = Field(alias="author")  # Author appears to be a list of dicts
@@ -19,7 +26,6 @@ class Article(BaseModel):
 
     # Optional fields that might be added later
     file_name: Optional[str] = None
-    output_path: Optional[str] = None
 
     class Config:
         populate_by_name = True
