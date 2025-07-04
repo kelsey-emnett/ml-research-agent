@@ -1,5 +1,6 @@
 import aiohttp
 import ssl
+import string
 
 
 def create_ssl_context():
@@ -12,3 +13,18 @@ def create_ssl_context():
     connector = aiohttp.TCPConnector(ssl=ssl_context)
 
     return connector
+
+
+def filter_valid_results(results):
+    return [
+        result for result in results if result and not isinstance(result, Exception)
+    ]
+
+
+def create_file_name(title):
+    remove_punctuation = str.maketrans("", "", string.punctuation)
+
+    return (
+        title.translate(remove_punctuation).lower().replace(" ", "_").lower()[0:40]
+        + ".pdf"
+    )
