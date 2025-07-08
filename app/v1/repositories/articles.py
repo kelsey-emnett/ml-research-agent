@@ -142,11 +142,12 @@ class ArticleRepository(BaseRepository):
                 )
         except Exception as e:
             error_type = type(e).__name__
+            doi = article_data["doi"]
             self.logger.error(
-                f"Error saving/updating article in database with doi {article_data["doi"]} ({error_type}): {e}"
+                f"Error saving/updating article in database with doi {doi} ({error_type}): {e}"
             )
             raise Exception(
-                f"Error saving/updating article in database with doi {article_data["doi"]}: {e}"
+                f"Error saving/updating article in database with doi {doi}: {e}"
             )
 
     async def save_downloaded_articles(
@@ -169,8 +170,9 @@ class ArticleRepository(BaseRepository):
                 if result:
                     saved_articles.append(article)
                 else:
+                    doi = article["doi"]
                     logger.error(
-                        f"Error saving single article to database with doi {article["doi"]}."
+                        f"Error saving single article to database with doi {doi}."
                     )
             except Exception as e:
                 doi = article["doi"]
