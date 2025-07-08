@@ -1,6 +1,6 @@
+import asyncio
 import logging
-import datetime
-from app.v1.db.database import get_error_collection
+from app.v1.repositories.errors import ErrorRepository
 
 
 class MongoDBHandler(logging.Handler):
@@ -10,6 +10,8 @@ class MongoDBHandler(logging.Handler):
 
     def __init__(self, level=logging.WARNING):
         super().__init__(level)
+        self.loop = None
+        self.error_repository = ErrorRepository()
 
     def emit(self, record):
         """
@@ -18,48 +20,45 @@ class MongoDBHandler(logging.Handler):
         """
         if record.levelno >= logging.WARNING:  # Only log warnings and errors
             try:
-                # Get the error collection
-                error_collection = get_error_collection()
+                if self.loop is None:
+                    try:
+                        self.loop = asyncio.get_running_loop()
+                    except RuntimeError:
+                        self.loop = asyncio.new_event_loop()
+                        asyncio.set_event_loop(self.loop)
 
-                # Create a document with only the essential fields
-                log_entry = {
-                    "timestamp": datetime.datetime.utcnow(),
-                    "level": record.levelname,
-                    "message": self.format(record),
-                    "module": record.module,
-                    "funcName": record.funcName,
-                    "lineno": record.lineno,
-                    "pathname": record.pathname,
-                }
-
-                # Insert the document
-                error_collection.insert_one(log_entry)
+                asyncio.run_coroutine_threadsafe(
+                    self.error_repository.log_error(record), self.loop
+                )
             except Exception as e:
                 # Use a fallback logger in case of MongoDB connection issues
                 fallback = logging.getLogger("fallback")
                 fallback.error(f"Failed to log to MongoDB: {e}")
 
 
-def setup_mongo_logging():
+async def setup_mongo_logging():
     """
     Set up MongoDB logging for the application
     """
-    # Get the root logger
-    root_logger = logging.getLogger()
+    try:
+        # Get the root logger
+        root_logger = logging.getLogger()
 
-    # Create MongoDB handler
-    mongo_handler = MongoDBHandler(level=logging.WARNING)
+        # Create MongoDB handler
+        mongo_handler = MongoDBHandler(level=logging.WARNING)
 
-    # Add a formatter
-    formatter = logging.Formatter(
-        "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-    )
-    mongo_handler.setFormatter(formatter)
+        # Add a formatter
+        formatter = logging.Formatter(
+            "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+        )
+        mongo_handler.setFormatter(formatter)
 
-    # Add the handler to the root logger
-    root_logger.addHandler(mongo_handler)
+        # Add the handler to the root logger
+        root_logger.addHandler(mongo_handler)
 
-    # Set the logger level to ensure it captures warnings and errors
-    root_logger.setLevel(logging.WARNING)
+        # Set the logger level to ensure it captures warnings and errors
+        root_logger.setLevel(logging.WARNING)
 
-    return root_logger
+        return root_logger
+    except Exception as e:
+        print(f"Error setting up MongoDB logging: {e}")

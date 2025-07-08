@@ -14,16 +14,16 @@ def init_db(app: FastAPI):
     @app.on_event("startup")
     async def startup_db_client():
         # Initialize MongoDB connection
-        get_mongo_client()
+        await get_mongo_client()
 
         # Setup MongoDB logging
-        setup_mongo_logging()
+        await setup_mongo_logging()
 
         logger.info("MongoDB connection and logging initialized")
 
     @app.on_event("shutdown")
     async def shutdown_db_client():
         # Close MongoDB connection
-        close_mongo_connection()
+        await close_mongo_connection()
 
         logger.info("MongoDB connection closed")

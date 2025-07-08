@@ -1,5 +1,8 @@
 fastapi[standard]==0.115.13
+motor==3.7.1
+numpy==2.3.1
 openai==1.91.0
 pre-commit==4.2.0
+pydantic==2.11.7
 pytest==8.4.1
 ruff==0.12.0

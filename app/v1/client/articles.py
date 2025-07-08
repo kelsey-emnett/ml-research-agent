@@ -4,16 +4,18 @@ import aiohttp
 from doi2pdf import doi2pdf
 from dotenv import load_dotenv
 from app.v1.utils.constants import USER_AGENT_TEMPLATE
-from app.v1.schemas.download_articles import (
+from app.v1.schemas.articles import (
     CrossRefParams,
     ArticleResponse,
     ArticleInput,
 )
+from app.v1.repositories.articles import ArticleRepository
 from app.v1.utils.utils import create_ssl_context
 import tempfile
 from app.v1.utils.storage import AzureBlobStorageClient
 from app.v1.utils.utils import create_file_name
 import logging
+from typing import List
 
 
 class ExtractResearchArticles:
@@ -23,6 +25,7 @@ class ExtractResearchArticles:
         self._configure_from_env()
         self.azure_client = AzureBlobStorageClient()
         self.logger = logging.getLogger(__name__)
+        self.article_cls = ArticleRepository()
 
     def _configure_from_env(self):
         required_vars = [
@@ -128,7 +131,7 @@ class ExtractResearchArticles:
             self.logger.error(f"Error extracting articles: {e}")
             raise Exception(f"Error extracting articles: {e}")
 
-    async def download_papers(self, open_article_list):
+    async def download_papers(self, open_article_list) -> List[ArticleResponse]:
         try:
             for article in open_article_list:
                 article["file_name"] = create_file_name(article["title"][0])
@@ -142,7 +145,9 @@ class ExtractResearchArticles:
 
             exported_articles = [article for article in results if article is not None]
 
-            if not exported_articles:
+            if exported_articles:
+                pass
+            else:
                 raise ValueError("No articles downloaded.")
 
             return exported_articles
@@ -236,4 +241,8 @@ class ExtractResearchArticles:
 
         downloaded_articles = await self.download_papers(open_article_list)
 
-        return downloaded_articles
+        articles_uploaded_db = await self.article_cls.save_downloaded_articles(
+            downloaded_articles
+        )
+
+        return articles_uploaded_db

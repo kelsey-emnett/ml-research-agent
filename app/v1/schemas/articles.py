@@ -1,6 +1,7 @@
 from pydantic import BaseModel, Field
 from app.v1.utils.constants import CROSSREF_FILTER
 from typing import List, Optional
+from datetime import datetime
 
 
 class CrossRefParams(BaseModel):
@@ -18,6 +19,7 @@ class ArticleInput(BaseModel):
 
 class ArticleResponse(BaseModel):
     doi: str = Field(alias="DOI")
+    timestamp: datetime = Field(default_factory=datetime.utcnow)
     title: List[str] = Field(alias="title")  # From context it seems title is a list
     author: List[dict] = Field(alias="author")  # Author appears to be a list of dicts
     year_published: int = Field(alias="published.date-parts.0.0")
@@ -26,6 +28,7 @@ class ArticleResponse(BaseModel):
 
     # Optional fields that might be added later
     file_name: Optional[str] = None
+    blob_url: Optional[str] = None
 
     class Config:
         populate_by_name = True
