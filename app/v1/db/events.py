@@ -1,3 +1,4 @@
+from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from app.v1.db.database import get_mongo_client, close_mongo_connection
 from app.v1.db.mongo_logger import setup_mongo_logging
@@ -6,24 +7,22 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-def init_db(app: FastAPI):
+@asynccontextmanager
+async def lifespan(app: FastAPI):
     """
-    Initialize database connection and setup MongoDB logging
+    Lifespan context manager to handle database startup and shutdown
     """
+    # Startup: Initialize MongoDB connection
+    await get_mongo_client()
 
-    @app.on_event("startup")
-    async def startup_db_client():
-        # Initialize MongoDB connection
-        await get_mongo_client()
+    # Setup MongoDB logging
+    await setup_mongo_logging()
 
-        # Setup MongoDB logging
-        await setup_mongo_logging()
+    logger.info("MongoDB connection and logging initialized")
 
-        logger.info("MongoDB connection and logging initialized")
+    yield
 
-    @app.on_event("shutdown")
-    async def shutdown_db_client():
-        # Close MongoDB connection
-        await close_mongo_connection()
+    # Shutdown: Close MongoDB connection
+    await close_mongo_connection()
 
-        logger.info("MongoDB connection closed")
+    logger.info("MongoDB connection closed")

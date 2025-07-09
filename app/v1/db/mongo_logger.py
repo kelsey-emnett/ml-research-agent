@@ -1,6 +1,9 @@
 import asyncio
 import logging
 from app.v1.repositories.errors import ErrorRepository
+from app.v1.utils.exception_handling import handle_exception
+
+logger = logging.getLogger(__name__)
 
 
 class MongoDBHandler(logging.Handler):
@@ -36,29 +39,29 @@ class MongoDBHandler(logging.Handler):
                 fallback.error(f"Failed to log to MongoDB: {e}")
 
 
+@handle_exception(
+    logger, operation_desc="setting up MongoDB logging", include_error_type=True
+)
 async def setup_mongo_logging():
     """
     Set up MongoDB logging for the application
     """
-    try:
-        # Get the root logger
-        root_logger = logging.getLogger()
+    # Get the root logger
+    root_logger = logging.getLogger()
 
-        # Create MongoDB handler
-        mongo_handler = MongoDBHandler(level=logging.WARNING)
+    # Create MongoDB handler
+    mongo_handler = MongoDBHandler(level=logging.WARNING)
 
-        # Add a formatter
-        formatter = logging.Formatter(
-            "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-        )
-        mongo_handler.setFormatter(formatter)
+    # Add a formatter
+    formatter = logging.Formatter(
+        "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+    )
+    mongo_handler.setFormatter(formatter)
 
-        # Add the handler to the root logger
-        root_logger.addHandler(mongo_handler)
+    # Add the handler to the root logger
+    root_logger.addHandler(mongo_handler)
 
-        # Set the logger level to ensure it captures warnings and errors
-        root_logger.setLevel(logging.WARNING)
+    # Set the logger level to ensure it captures warnings and errors
+    root_logger.setLevel(logging.WARNING)
 
-        return root_logger
-    except Exception as e:
-        print(f"Error setting up MongoDB logging: {e}")
+    return root_logger

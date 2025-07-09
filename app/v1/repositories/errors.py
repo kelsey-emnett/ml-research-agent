@@ -2,6 +2,7 @@ from app.v1.repositories.base import BaseRepository
 from app.v1.schemas.errors import ErrorInput
 import logging
 from typing import Optional
+from app.v1.utils.exception_handling import handle_exception
 
 from app.v1.db.database import ERROR_COLLECTION
 
@@ -29,6 +30,9 @@ class ErrorRepository(BaseRepository):
             str: ID of the inserted error document
         """
 
+    @handle_exception(
+        logger, operation_desc="logging error message.", include_error_type=True
+    )
     async def log_error(
         self, record: logging.LogRecord, formatter: Optional[logging.Formatter] = None
     ):
@@ -42,24 +46,24 @@ class ErrorRepository(BaseRepository):
         Returns:
             str: ID of the inserted error document
         """
-        try:
-            message = formatter.format(record) if formatter else record.getMessage()
+        message = formatter.format(record) if formatter else record.getMessage()
 
-            error_input = ErrorInput(
-                level=record.levelname,
-                message=message,
-                module=record.module,
-                funcName=record.funcName,
-                lineno=record.lineno,
-                pathname=record.pathname,
-            )
-            return await self.insert_one(error_input.model_dump())
+        error_input = ErrorInput(
+            level=record.levelname,
+            message=message,
+            module=record.module,
+            funcName=record.funcName,
+            lineno=record.lineno,
+            pathname=record.pathname,
+        )
+        return await self.insert_one(error_input.model_dump())
 
-        except Exception as e:
-            error_type = type(e).__name__
-            logger.error(f"Error logging error: ({error_type}): {e}")
-            raise Exception(f"Error logging error: {e}")
-
+    @handle_exception(
+        logger,
+        input_identifier_key="doi",
+        operation_desc="getting recent error messages.",
+        include_error_type=True,
+    )
     async def get_recent_errors(self, limit=5):
         """
         Get the most recent errors from the database
@@ -70,9 +74,4 @@ class ErrorRepository(BaseRepository):
         Returns:
             List[Dict]: List of recent error documents
         """
-        try:
-            return await self.find_many({}, limit=limit, sort=[("timestamp", -1)])
-        except Exception as e:
-            error_type = type(e).__name__
-            logger.error(f"Error retrieving recent errors: ({error_type}): {e}")
-            raise Exception(f"Error retrieving recent errors: {e}")
+        return await self.find_many({}, limit=limit, sort=[("timestamp", -1)])

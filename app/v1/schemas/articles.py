@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 from app.v1.utils.constants import CROSSREF_FILTER
 from typing import List, Optional
 from datetime import datetime
@@ -30,6 +30,4 @@ class ArticleResponse(BaseModel):
     file_name: Optional[str] = None
     blob_url: Optional[str] = None
 
-    class Config:
-        populate_by_name = True
-        arbitrary_types_allowed = True
+    model_config = ConfigDict(populate_by_name=True, arbitrary_types_allowed=True)

@@ -1,8 +1,8 @@
 from motor.motor_asyncio import AsyncIOMotorClient
-from pymongo.errors import ConnectionFailure
 import logging
 import os
 from dotenv import load_dotenv
+from app.v1.utils.exception_handling import handle_exception
 
 # Configure basic logging
 logging.basicConfig(level=logging.INFO)
@@ -23,26 +23,25 @@ mongo_client = None
 db = None
 
 
+@handle_exception(
+    logger, operation_desc="Failed to connect to MongoDB", include_error_type=True
+)
 async def get_mongo_client():
     """
     Returns a MongoDB client instance, creating it if needed
     """
     global mongo_client
     if mongo_client is None:
-        try:
-            mongo_client = AsyncIOMotorClient(
-                MONGO_URI,
-                tlsAllowInvalidCertificates=True,  # This replaces ssl_cert_reqs=CERT_NONE
-                connectTimeoutMS=30000,
-                serverSelectionTimeoutMS=30000,
-            )
+        mongo_client = AsyncIOMotorClient(
+            MONGO_URI,
+            tlsAllowInvalidCertificates=True,  # This replaces ssl_cert_reqs=CERT_NONE
+            connectTimeoutMS=30000,
+            serverSelectionTimeoutMS=30000,
+        )
 
-            # Verify connection is working
-            await mongo_client.admin.command("ping")
-            logger.info("Successfully connected to MongoDB")
-        except ConnectionFailure as e:
-            logger.error(f"Failed to connect to MongoDB: {e}")
-            raise
+        # Verify connection is working
+        await mongo_client.admin.command("ping")
+        logger.info("Successfully connected to MongoDB")
     return mongo_client
 
 
@@ -70,14 +69,6 @@ async def get_collection(collection: str):
         return database[CHAT_COLLECTION]
     else:
         raise ValueError("Invalid collection name")
-
-
-async def get_article_collection():
-    """
-    Returns a reference to the error collection
-    """
-    database = await get_database()
-    return database[ARTICLE_COLLECTION]
 
 
 async def close_mongo_connection():

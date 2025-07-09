@@ -2,6 +2,10 @@ from openai import AzureOpenAI
 import os
 from dotenv import load_dotenv
 import yaml
+from app.v1.utils.exception_handling import handle_exception
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class OpenAIChat:
@@ -49,20 +53,19 @@ class OpenAIChat:
 
         return model_input
 
+    @handle_exception(
+        logger, operation_desc="OpenAI API Error", include_error_type=True
+    )
     def chat(self, system_message: str, user_message: str):
-        try:
-            client = self.initialize_openai_client()
+        client = self.initialize_openai_client()
 
-            model_input = self.construct_model_input(system_message, user_message)
+        model_input = self.construct_model_input(system_message, user_message)
 
-            response = client.chat.completions.create(
-                messages=model_input,
-                max_completion_tokens=self.max_tokens,
-                temperature=self.temperature,
-                model=self.model_name,
-            )
+        response = client.chat.completions.create(
+            messages=model_input,
+            max_completion_tokens=self.max_tokens,
+            temperature=self.temperature,
+            model=self.model_name,
+        )
 
-            return response.choices[0].message.content
-
-        except Exception as e:
-            raise Exception(f"OpenAI API Error: {str(e)}")
+        return response.choices[0].message.content

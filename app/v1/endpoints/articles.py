@@ -8,9 +8,8 @@ from typing import List
 router = APIRouter()
 
 
-@router.get(
+@router.post(
     "/retrieve_saved_articles/",
-    tags=["retrieve_saved_articles"],
     response_model=List[ArticleResponse],
 )
 async def retrieve_saved_articles_by_doi(doi_list: List[str]) -> List[ArticleResponse]:
@@ -27,7 +26,6 @@ async def retrieve_saved_articles_by_doi(doi_list: List[str]) -> List[ArticleRes
 
 @router.post(
     "/search_download_articles/",
-    tags=["search_download_articles"],
     response_model=List[ArticleResponse],
 )
 async def retrieve_articles(request: ArticleInput) -> List[ArticleResponse]:
